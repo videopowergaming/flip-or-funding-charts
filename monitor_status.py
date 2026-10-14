@@ -38,6 +38,25 @@ def main() -> None:
         print(f"  recorded        : {last_t.strftime('%a %b %d %Y %I:%M %p %Z')}  ({hrs:.1f}h ago)")
         if hrs > 2:
             print(f"  ⚠️  gap > 2h — hourly loop may be stopped (session closed / Mac asleep / extension off).")
+
+        # per-day calendar
+        by_day = {}
+        for e in log:
+            t = dt.datetime.fromisoformat(e["timestamp"])
+            by_day.setdefault(t.date(), []).append((t, e["pledged_usd"], e["backers"]))
+        print("\nUpdate calendar:")
+        d, last_day, one = min(by_day), max(by_day), dt.timedelta(days=1)
+        prev = None
+        while d <= last_day:
+            if d in by_day:
+                snaps = sorted(by_day[d])
+                _, pl, bk = snaps[-1]
+                gain = "" if prev is None else f"(+${pl-prev:,.0f})"
+                print(f"  {d.strftime('%a %b %d')} : ${pl:,.0f} {gain:<12} {bk:,} backers  [{len(snaps)} snap]")
+                prev = pl
+            else:
+                print(f"  {d.strftime('%a %b %d')} : — no data (away) —")
+            d += one
     else:
         print("No snapshots logged yet.")
 

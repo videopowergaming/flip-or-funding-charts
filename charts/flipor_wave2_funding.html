@@ -47,6 +47,14 @@
   text.ytitle { fill:var(--yaxis); font-size:13px; font-weight:700; }
   text.goal-label { fill:var(--goal); font-size:12px; font-weight:600; }
   text.callout { fill:var(--line); font-size:13px; font-weight:700; }
+  .caltitle { font-size:1.05rem; margin:28px 0 10px; }
+  table.cal { width:100%; border-collapse:collapse; font-size:.88rem; }
+  table.cal th, table.cal td { padding:8px 10px; border-bottom:1px solid var(--grid); text-align:left; }
+  table.cal th { color:var(--muted); font-weight:600; border-bottom:2px solid var(--xaxis); }
+  table.cal td.r, table.cal th.r { text-align:right; }
+  table.cal td.t { color:var(--muted); font-size:.8rem; }
+  table.cal td.gain { color:#16a34a; font-weight:600; }
+  table.cal tr.gapday td { color:var(--muted); font-style:italic; background:var(--card); }
   .empty { color:var(--muted); padding:40px; text-align:center; }
   .foot { color:var(--muted); font-size:.78rem; margin-top:16px; }
   .live { display:inline-block; width:8px; height:8px; border-radius:50%;
@@ -109,8 +117,15 @@
 <text x="505.0" y="522" text-anchor="middle" class="xtitle">Date</text>
 <text x="22" y="270.0" text-anchor="middle" class="ytitle" transform="rotate(-90 22 270.0)">Dollars pledged (USD)</text>
 </svg>
+    
+    <h2 class="caltitle">Update calendar</h2>
+    <table class="cal">
+      <thead><tr><th>Day</th><th class="r">Pledged (EOD)</th><th class="r">Gain</th>
+        <th class="r">Backers</th><th class="r">Snaps</th><th>Last pull</th></tr></thead>
+      <tbody><tr><td>Tue Oct 13</td><td class="r">$0</td><td class="r gain"></td><td class="r">0</td><td class="r">1</td><td class="t">last 08:00 PM</td></tr><tr><td>Wed Oct 14</td><td class="r">$125,716</td><td class="r gain">+$125,716</td><td class="r">386</td><td class="r">1</td><td class="t">last 09:00 AM</td></tr></tbody>
+    </table>
     <p class="foot"><span class="live"></span>Auto-refreshes every 60s ·
-      2 snapshot(s) logged · last built 2026-10-14 09:11 EDT ·
+      2 snapshot(s) logged · last built 2026-10-14 09:17 EDT ·
       deadline Nov 17 2026 08:00 PM UTC-05:00</p>
   </div>
 </body>

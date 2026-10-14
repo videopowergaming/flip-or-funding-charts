@@ -30,10 +30,20 @@ Chrome running + Claude extension connected (🧩) + Mac awake + the Claude sess
 Minimizing the tab, switching windows, or opening new tabs/windows is **fine** — the monitor
 uses its own background tab and doesn't touch your other tabs.
 
-## Resume in one step (new session, or after the 7-day expiry)
+## Resume in one step (new session, or after the 7-day expiry / days away)
 
-1. Run `python3 monitor_status.py` to see last snapshot, any gap, and whether a restart is due.
-2. Tell Claude: **"resume Flip-Or monitoring."** Claude re-arms the hourly cron (`7 * * * *`)
-   with the connection-check + notify behavior, and the 7-day restart reminder.
+When Patrick logs back in after any break, Claude should:
+1. Run `python3 monitor_status.py` — **report the last day/time data was pulled**, show the
+   **update calendar** (which days have data, which were "away"), and the gap since last pull.
+2. **Take a fresh snapshot now** (pull current pledged/backers via Chrome) →
+   `python3 build.py --record --pledged N --backers N` → graph it → commit + push.
+3. Re-arm the hourly cron (`7 * * * *`, with connection-check + notify) and the restart reminder.
 
-Gaps (hours the loop wasn't running) simply show as gaps in the chart — no data is corrupted.
+So the flow is always: *"here's when we last updated + the calendar → now here's today's new point, graphed."*
+
+### Where the calendar + last-pull live
+- **`data/monitor_state.json`** stores `last_pulled`, `last_pledged_usd`, `last_backers` (stamped on every snapshot, committed to GitHub) — so the last update is known even across logouts.
+- The **chart page** (`charts/flipor_wave2_funding.html`) shows an **Update calendar** table: per-day end-of-day pledged, daily gain, backers, snapshots, and flags days with **no data (away)**.
+- `monitor_status.py` prints the same calendar in the terminal.
+
+Gaps (hours/days the loop wasn't running) show as gaps/"away" rows — no data is corrupted.

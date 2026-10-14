@@ -42,6 +42,25 @@ def save_log(log: list) -> None:
     LOG_PATH.write_text(json.dumps(log, indent=2))
 
 
+STATE_PATH = ROOT / "data" / "monitor_state.json"
+
+
+def update_state(entry: dict) -> None:
+    """Stamp the last-pulled date/time into the persisted state file (committed to GitHub)."""
+    try:
+        state = json.loads(STATE_PATH.read_text())
+    except Exception:
+        state = {"monitoring": {}}
+    m = state.setdefault("monitoring", {})
+    m["last_pulled"] = entry["timestamp"]
+    m["last_pledged_usd"] = entry["pledged_usd"]
+    m["last_backers"] = entry["backers"]
+    try:
+        STATE_PATH.write_text(json.dumps(state, indent=2))
+    except Exception:
+        pass
+
+
 def record(pledged: float, backers: int) -> list:
     log = load_log()
     now = dt.datetime.now(dt.timezone.utc).astimezone()
@@ -56,6 +75,7 @@ def record(pledged: float, backers: int) -> list:
     else:
         log.append(entry)
     save_log(log)
+    update_state(entry)
     return log
 
 
@@ -149,6 +169,53 @@ def render_chart(log: list) -> str:
     return "\n".join(svg), latest, goal, deadline
 
 
+def render_calendar(log: list) -> str:
+    """Day-by-day update calendar derived from the log: shows end-of-day totals,
+    daily gain, snapshots per day, and flags days with no data (time away)."""
+    if not log:
+        return ""
+    by_day = {}
+    for e in log:
+        t = dt.datetime.fromisoformat(e["timestamp"])
+        by_day.setdefault(t.date(), []).append((t, e["pledged_usd"], e["backers"]))
+
+    first_day = min(by_day)
+    last_day = max(by_day)
+    rows = []
+    prev_pledged = None
+    d = first_day
+    one = dt.timedelta(days=1)
+    while d <= last_day:
+        if d in by_day:
+            snaps = sorted(by_day[d], key=lambda s: s[0])
+            last_t, pledged, backers = snaps[-1]
+            gain = "" if prev_pledged is None else f"+{_fmt_usd(pledged - prev_pledged)}"
+            rows.append(
+                f'<tr><td>{d.strftime("%a %b %d")}</td>'
+                f'<td class="r">{_fmt_usd(pledged)}</td>'
+                f'<td class="r gain">{gain}</td>'
+                f'<td class="r">{backers:,}</td>'
+                f'<td class="r">{len(snaps)}</td>'
+                f'<td class="t">last {last_t.strftime("%I:%M %p")}</td></tr>'
+            )
+            prev_pledged = pledged
+        else:
+            rows.append(
+                f'<tr class="gapday"><td>{d.strftime("%a %b %d")}</td>'
+                f'<td class="r">—</td><td class="r">—</td><td class="r">—</td>'
+                f'<td class="r">0</td><td class="t">no data (away)</td></tr>'
+            )
+        d += one
+
+    return f"""
+    <h2 class="caltitle">Update calendar</h2>
+    <table class="cal">
+      <thead><tr><th>Day</th><th class="r">Pledged (EOD)</th><th class="r">Gain</th>
+        <th class="r">Backers</th><th class="r">Snaps</th><th>Last pull</th></tr></thead>
+      <tbody>{''.join(rows)}</tbody>
+    </table>"""
+
+
 def build(log: list) -> None:
     CHART_PATH.parent.mkdir(parents=True, exist_ok=True)
     now = dt.datetime.now().astimezone()
@@ -175,6 +242,7 @@ def build(log: list) -> None:
           <div class="stat s-days"><div class="num">{days_left}</div><div class="lbl">days to go</div></div>
         </div>"""
 
+    calendar_html = render_calendar(log)
     title = html.escape(CAMP["name"])
     page = f"""<!DOCTYPE html>
 <html lang="en">
@@ -225,6 +293,14 @@ def build(log: list) -> None:
   text.ytitle {{ fill:var(--yaxis); font-size:13px; font-weight:700; }}
   text.goal-label {{ fill:var(--goal); font-size:12px; font-weight:600; }}
   text.callout {{ fill:var(--line); font-size:13px; font-weight:700; }}
+  .caltitle {{ font-size:1.05rem; margin:28px 0 10px; }}
+  table.cal {{ width:100%; border-collapse:collapse; font-size:.88rem; }}
+  table.cal th, table.cal td {{ padding:8px 10px; border-bottom:1px solid var(--grid); text-align:left; }}
+  table.cal th {{ color:var(--muted); font-weight:600; border-bottom:2px solid var(--xaxis); }}
+  table.cal td.r, table.cal th.r {{ text-align:right; }}
+  table.cal td.t {{ color:var(--muted); font-size:.8rem; }}
+  table.cal td.gain {{ color:#16a34a; font-weight:600; }}
+  table.cal tr.gapday td {{ color:var(--muted); font-style:italic; background:var(--card); }}
   .empty {{ color:var(--muted); padding:40px; text-align:center; }}
   .foot {{ color:var(--muted); font-size:.78rem; margin-top:16px; }}
   .live {{ display:inline-block; width:8px; height:8px; border-radius:50%;
@@ -240,6 +316,7 @@ def build(log: list) -> None:
       <a href="{html.escape(CAMP['url'])}" target="_blank" rel="noopener">View on Kickstarter</a></p>
     {stat_cards}
     {chart_svg}
+    {calendar_html}
     <p class="foot"><span class="live"></span>Auto-refreshes every {REFRESH_SECONDS}s ·
       {len(log)} snapshot(s) logged · last built {now.strftime('%Y-%m-%d %H:%M %Z')} ·
       deadline {deadline.strftime('%b %d %Y %I:%M %p %Z')}</p>
