@@ -47,5 +47,5 @@ publicly — the full historical funding curve lives on the creator's private da
 
 ## Notes
 
-- Standalone project — unrelated to the daily-stock-analysis work.
+- Standalone, self-contained project.
 - Report funding figures as factual data only.
