@@ -30,6 +30,17 @@ Chrome running + Claude extension connected (🧩) + Mac awake + the Claude sess
 Minimizing the tab, switching windows, or opening new tabs/windows is **fine** — the monitor
 uses its own background tab and doesn't touch your other tabs.
 
+## Trigger phrase: "pull up the flip-or funding charts"
+
+When Patrick says **"pull up the flip-or funding charts"** (or a close variant — "show me the
+flip-or funding graph", etc.), especially after time away, Claude runs the resume flow in this order:
+1. **Say when data was last retrieved** (`last_pulled` from `data/monitor_state.json`, via
+   `python3 monitor_status.py`) and show the update calendar + the gap since last pull.
+2. **Retrieve a fresh data point now** via the logged-in Chrome (current pledged / backers) →
+   `python3 build.py --record --pledged N --backers N` → rebuild → commit + push.
+3. **Show the updated graph** (`charts/flipor_wave2_funding.html`).
+4. Re-arm the hourly loop + restart reminder if they aren't running.
+
 ## Resume in one step (new session, or after the 7-day expiry / days away)
 
 When Patrick logs back in after any break, Claude should:
