@@ -97,8 +97,9 @@ def render_chart(log: list) -> str:
     ML, MR, MT, MB = 90, 40, 70, 70
     plot_w, plot_h = W - ML - MR, H - MT - MB
 
-    # x domain: first snapshot -> deadline (so the goal/time runway is visible)
-    t0 = points[0][0] if points else deadline - dt.timedelta(days=34)
+    # x domain: start of the first day -> deadline (so daily ticks align cleanly)
+    first_t = points[0][0] if points else deadline - dt.timedelta(days=34)
+    t0 = dt.datetime.combine(first_t.date(), dt.time(0, 0), tzinfo=first_t.tzinfo)
     t1 = deadline
     if t1 <= t0:
         t1 = t0 + dt.timedelta(days=1)
@@ -134,13 +135,26 @@ def render_chart(log: list) -> str:
     svg.append(f'<line x1="{ML}" y1="{gy:.1f}" x2="{W-MR}" y2="{gy:.1f}" stroke="var(--goal)" stroke-width="2" stroke-dasharray="6 5"/>')
     svg.append(f'<text x="{W-MR}" y="{gy-8:.1f}" text-anchor="end" class="goal-label">Goal {_fmt_usd(goal)}</text>')
 
-    # x gridlines + date labels (up to 6 ticks across the window)
-    xticks = 6
-    for i in range(xticks + 1):
-        t = t0 + dt.timedelta(seconds=span * i / xticks)
-        x = x_px(t)
+    # x gridlines + DAILY date labels (Oct 13, 14, 15, ... Nov 17)
+    n_days = (t1.date() - t0.date()).days
+    # thin labels only if a day would get less than ~22px (keeps text from overlapping)
+    px_per_day = plot_w / max(n_days, 1)
+    label_every = max(1, int(round(22 / px_per_day))) if px_per_day < 22 else 1
+    d = t0.date()
+    one = dt.timedelta(days=1)
+    idx = 0
+    while d <= t1.date():
+        tx = dt.datetime.combine(d, dt.time(0, 0), tzinfo=t0.tzinfo)
+        x = x_px(tx)
         svg.append(f'<line x1="{x:.1f}" y1="{MT}" x2="{x:.1f}" y2="{MT+plot_h}" stroke="var(--grid)" stroke-width="1"/>')
-        svg.append(f'<text x="{x:.1f}" y="{MT+plot_h+22:.1f}" text-anchor="middle" class="xlab">{t.strftime("%b %d")}</text>')
+        if idx % label_every == 0 or d == t1.date():
+            # day number on the main row
+            svg.append(f'<text x="{x:.1f}" y="{MT+plot_h+20:.1f}" text-anchor="middle" class="xlab">{d.day}</text>')
+            # month name on a second row, only at the first tick and each month start
+            if idx == 0 or d.day == 1:
+                svg.append(f'<text x="{x:.1f}" y="{MT+plot_h+38:.1f}" text-anchor="middle" class="xmonth">{d.strftime("%b")}</text>')
+        d += one
+        idx += 1
 
     # colored axis spines (y = purple, x = teal)
     svg.append(f'<line x1="{ML}" y1="{MT}" x2="{ML}" y2="{MT+plot_h}" stroke="var(--yaxis)" stroke-width="3"/>')
@@ -325,7 +339,8 @@ def build(log: list) -> None:
   .s-backers {{ border-left-color:var(--xaxis); }}   .s-backers .num {{ color:var(--xaxis); }}
   .s-days {{ border-left-color:var(--goal); }}       .s-days .num {{ color:var(--goal); }}
   .chart {{ width:100%; height:auto; background:var(--bg); border-radius:12px; }}
-  text.xlab {{ fill:var(--xlabel); font-size:12px; font-weight:600; }}
+  text.xlab {{ fill:var(--xlabel); font-size:11px; font-weight:600; }}
+  text.xmonth {{ fill:var(--xaxis); font-size:12px; font-weight:700; }}
   text.ylab {{ fill:var(--ylabel); font-size:12px; font-weight:600; }}
   text.xtitle {{ fill:var(--xaxis); font-size:13px; font-weight:700; }}
   text.ytitle {{ fill:var(--yaxis); font-size:13px; font-weight:700; }}
