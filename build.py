@@ -83,49 +83,37 @@ def _fmt_usd(v: float) -> str:
     return "${:,.0f}".format(v)
 
 
-def render_chart(log: list) -> str:
-    goal = float(CAMP["goal_usd"])
-    deadline = dt.datetime.fromisoformat(CAMP["deadline"])
-    points = [
+def _all_points(log: list) -> list:
+    pts = [
         (dt.datetime.fromisoformat(e["timestamp"]), e["pledged_usd"], e["backers"])
         for e in log
     ]
-    points.sort(key=lambda p: p[0])
+    pts.sort(key=lambda p: p[0])
+    return pts
 
-    # --- chart geometry ---
+
+def _line_chart(points_all: list, goal: float, x0: dt.datetime, x1: dt.datetime) -> str:
+    """Render one funding line chart over the x-domain [x0, x1] with daily ticks."""
     W, H = 960, 540
     ML, MR, MT, MB = 90, 40, 70, 70
     plot_w, plot_h = W - ML - MR, H - MT - MB
-
-    # x domain: start of the first day -> deadline (so daily ticks align cleanly)
-    first_t = points[0][0] if points else deadline - dt.timedelta(days=34)
-    t0 = dt.datetime.combine(first_t.date(), dt.time(0, 0), tzinfo=first_t.tzinfo)
-    t1 = deadline
-    if t1 <= t0:
-        t1 = t0 + dt.timedelta(days=1)
-    span = (t1 - t0).total_seconds()
-
-    # y domain: 0 -> a bit above max(goal, pledged)
-    max_pledged = max([p[1] for p in points], default=0)
-    y_max = max(goal, max_pledged) * 1.1
-    y_max = max(y_max, 1)
+    span = (x1 - x0).total_seconds() or 1
+    win = [p for p in points_all if x0 <= p[0] <= x1]
+    max_pledged = max([p[1] for p in win], default=0)
+    y_max = max(max(goal, max_pledged) * 1.1, 1)
 
     def x_px(t):
-        return ML + plot_w * ((t - t0).total_seconds() / span)
+        return ML + plot_w * ((t - x0).total_seconds() / span)
 
     def y_px(v):
         return MT + plot_h * (1 - v / y_max)
 
-    latest = points[-1] if points else None
-
-    svg = []
-    svg.append(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" class="chart">')
+    svg = [f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" class="chart">']
     svg.append(f'<rect x="0" y="0" width="{W}" height="{H}" fill="var(--bg)"/>')
 
     # y gridlines + labels ($)
-    steps = 5
-    for i in range(steps + 1):
-        v = y_max * i / steps
+    for i in range(6):
+        v = y_max * i / 5
         y = y_px(v)
         svg.append(f'<line x1="{ML}" y1="{y:.1f}" x2="{W-MR}" y2="{y:.1f}" stroke="var(--grid)" stroke-width="1"/>')
         svg.append(f'<text x="{ML-10}" y="{y+4:.1f}" text-anchor="end" class="ylab">{_fmt_usd(v)}</text>')
@@ -135,52 +123,76 @@ def render_chart(log: list) -> str:
     svg.append(f'<line x1="{ML}" y1="{gy:.1f}" x2="{W-MR}" y2="{gy:.1f}" stroke="var(--goal)" stroke-width="2" stroke-dasharray="6 5"/>')
     svg.append(f'<text x="{W-MR}" y="{gy-8:.1f}" text-anchor="end" class="goal-label">Goal {_fmt_usd(goal)}</text>')
 
-    # x gridlines + DAILY date labels (Oct 13, 14, 15, ... Nov 17)
-    n_days = (t1.date() - t0.date()).days
-    # thin labels only if a day would get less than ~22px (keeps text from overlapping)
+    # daily x gridlines + labels (day number; month on a second row)
+    n_days = (x1.date() - x0.date()).days
     px_per_day = plot_w / max(n_days, 1)
     label_every = max(1, int(round(22 / px_per_day))) if px_per_day < 22 else 1
-    d = t0.date()
+    d = x0.date()
     one = dt.timedelta(days=1)
     idx = 0
-    while d <= t1.date():
-        tx = dt.datetime.combine(d, dt.time(0, 0), tzinfo=t0.tzinfo)
+    while d <= x1.date():
+        tx = dt.datetime.combine(d, dt.time(0, 0), tzinfo=x0.tzinfo)
         x = x_px(tx)
         svg.append(f'<line x1="{x:.1f}" y1="{MT}" x2="{x:.1f}" y2="{MT+plot_h}" stroke="var(--grid)" stroke-width="1"/>')
-        if idx % label_every == 0 or d == t1.date():
-            # day number on the main row
+        if idx % label_every == 0 or d == x1.date():
             svg.append(f'<text x="{x:.1f}" y="{MT+plot_h+20:.1f}" text-anchor="middle" class="xlab">{d.day}</text>')
-            # month name on a second row, only at the first tick and each month start
             if idx == 0 or d.day == 1:
                 svg.append(f'<text x="{x:.1f}" y="{MT+plot_h+38:.1f}" text-anchor="middle" class="xmonth">{d.strftime("%b")}</text>')
         d += one
         idx += 1
 
-    # colored axis spines (y = purple, x = teal)
+    # colored axis spines
     svg.append(f'<line x1="{ML}" y1="{MT}" x2="{ML}" y2="{MT+plot_h}" stroke="var(--yaxis)" stroke-width="3"/>')
     svg.append(f'<line x1="{ML}" y1="{MT+plot_h}" x2="{W-MR}" y2="{MT+plot_h}" stroke="var(--xaxis)" stroke-width="3"/>')
 
-    # funding line + area
-    if len(points) >= 2:
-        pts = " ".join(f"{x_px(t):.1f},{y_px(v):.1f}" for t, v, _ in points)
-        area = f"{x_px(points[0][0]):.1f},{y_px(0):.1f} " + pts + f" {x_px(points[-1][0]):.1f},{y_px(0):.1f}"
+    # funding line + area (points within the window)
+    if len(win) >= 2:
+        pts = " ".join(f"{x_px(t):.1f},{y_px(v):.1f}" for t, v, _ in win)
+        area = f"{x_px(win[0][0]):.1f},{y_px(0):.1f} " + pts + f" {x_px(win[-1][0]):.1f},{y_px(0):.1f}"
         svg.append(f'<polygon points="{area}" fill="var(--fill)" opacity="0.18"/>')
         svg.append(f'<polyline points="{pts}" fill="none" stroke="var(--line)" stroke-width="3" stroke-linejoin="round"/>')
-    for t, v, _ in points:
+    for t, v, _ in win:
         svg.append(f'<circle cx="{x_px(t):.1f}" cy="{y_px(v):.1f}" r="4" fill="var(--line)"/>')
 
     # latest marker callout
-    if latest:
-        lx, lv = x_px(latest[0]), y_px(latest[1])
-        svg.append(f'<circle cx="{lx:.1f}" cy="{lv:.1f}" r="6" fill="var(--line)" stroke="var(--bg)" stroke-width="2"/>')
-        svg.append(f'<text x="{lx-10:.1f}" y="{lv-12:.1f}" text-anchor="end" class="callout">{_fmt_usd(latest[1])}</text>')
+    if win:
+        lt, lv, _ = win[-1]
+        lx, ly = x_px(lt), y_px(lv)
+        svg.append(f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="6" fill="var(--line)" stroke="var(--bg)" stroke-width="2"/>')
+        svg.append(f'<text x="{lx-10:.1f}" y="{ly-12:.1f}" text-anchor="end" class="callout">{_fmt_usd(lv)}</text>')
 
-    # axis titles (colored to match their axes)
+    # axis titles
     svg.append(f'<text x="{ML+plot_w/2:.1f}" y="{H-18}" text-anchor="middle" class="xtitle">Date</text>')
     svg.append(f'<text x="22" y="{MT+plot_h/2:.1f}" text-anchor="middle" class="ytitle" transform="rotate(-90 22 {MT+plot_h/2:.1f})">Dollars pledged (USD)</text>')
-
     svg.append("</svg>")
-    return "\n".join(svg), latest, goal, deadline
+    return "\n".join(svg)
+
+
+def render_chart(log: list):
+    """Full-campaign chart: launch day -> deadline. Returns (svg, latest, goal, deadline)."""
+    goal = float(CAMP["goal_usd"])
+    deadline = dt.datetime.fromisoformat(CAMP["deadline"])
+    points = _all_points(log)
+    first_t = points[0][0] if points else deadline - dt.timedelta(days=34)
+    x0 = dt.datetime.combine(first_t.date(), dt.time(0, 0), tzinfo=first_t.tzinfo)
+    x1 = deadline if deadline > x0 else x0 + dt.timedelta(days=1)
+    latest = points[-1] if points else None
+    return _line_chart(points, goal, x0, x1), latest, goal, deadline
+
+
+def render_window_chart(log: list, days: int = 7) -> str:
+    """Zoomed view: trailing `days`-day window ending at the latest snapshot's day."""
+    goal = float(CAMP["goal_usd"])
+    points = _all_points(log)
+    if not points:
+        return ""
+    tz = points[0][0].tzinfo
+    first_date = points[0][0].date()
+    end_date = points[-1][0].date()
+    start_date = max(first_date, end_date - dt.timedelta(days=days - 1))
+    x0 = dt.datetime.combine(start_date, dt.time(0, 0), tzinfo=tz)
+    x1 = dt.datetime.combine(end_date + dt.timedelta(days=1), dt.time(0, 0), tzinfo=tz)
+    return _line_chart(points, goal, x0, x1)
 
 
 def _hour_label(t: dt.datetime) -> str:
@@ -293,6 +305,7 @@ def build(log: list) -> None:
           <div class="stat s-days"><div class="num">{days_left}</div><div class="lbl">days to go</div></div>
         </div>"""
 
+    window_svg = render_window_chart(log, days=7) if log else ""
     pull_log_html = render_pull_log(log) if log else ""
     calendar_html = render_calendar(log)
     title = html.escape(CAMP["name"])
@@ -372,7 +385,10 @@ def build(log: list) -> None:
     <p class="sub">by {html.escape(CAMP['creator'])} ·
       <a href="{html.escape(CAMP['url'])}" target="_blank" rel="noopener">View on Kickstarter</a></p>
     {stat_cards}
+    <h2 class="caltitle">Full campaign — launch → deadline</h2>
     {chart_svg}
+    <h2 class="caltitle">Last 7 days (zoomed)</h2>
+    {window_svg}
     {pull_log_html}
     {calendar_html}
     <p class="foot"><span class="live"></span>Auto-refreshes every {REFRESH_SECONDS}s ·

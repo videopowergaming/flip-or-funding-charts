@@ -9,10 +9,13 @@ Tracks and graphs **time vs. dollars backed** for the Kickstarter campaign
 ## What it does
 
 - Logs timestamped funding snapshots (pledged $, backers) to `data/flipor_wave2_funding_log.json`.
-- Renders a dependency-free, **self-refreshing** HTML/SVG line chart to
-  `charts/flipor_wave2_funding.html` (time on the x-axis, dollars pledged on the y-axis,
-  with the $200k goal line and the full runway to the deadline).
-- The chart page auto-reloads every 60s, so while snapshots are being appended it updates on its own.
+- Renders a dependency-free, **self-refreshing** HTML page (`charts/flipor_wave2_funding.html`)
+  that each refresh shows, in order:
+  1. **Full campaign** chart — launch → deadline, daily x-axis ticks, $200k goal line
+  2. **Last 7 days (zoomed)** chart — same size, trailing 7-day window
+  3. **Data pull log** — date & time + pledge level for every pull
+  4. **Update calendar** — per-day summary with "away" days flagged
+- The page auto-reloads every 60s, so while snapshots are being appended it updates on its own.
 
 ## Usage
 
