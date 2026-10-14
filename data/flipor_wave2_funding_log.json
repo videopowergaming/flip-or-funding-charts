@@ -1,0 +1,14 @@
+[
+  {
+    "timestamp": "2026-10-13T20:00:00-04:00",
+    "pledged_usd": 0.0,
+    "backers": 0,
+    "note": "launch anchor (inferred ~8pm, campaign starts at $0)"
+  },
+  {
+    "timestamp": "2026-10-14T09:00:30-04:00",
+    "pledged_usd": 125716.0,
+    "backers": 386,
+    "note": "first live snapshot via logged-in Chrome"
+  }
+]

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="60">
+<title>Flip-Or Wave 2 — Funding Over Time</title>
+<style>
+  :root {
+    --bg:#ffffff; --fg:#111827; --muted:#6b7280; --grid:#e5e7eb;
+    --line:#2563eb; --fill:#2563eb; --goal:#dc2626; --card:#f3f4f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0f141a; --fg:#e5e7eb; --muted:#9ca3af; --grid:#283039;
+      --line:#60a5fa; --fill:#60a5fa; --goal:#f87171; --card:#1a222c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0f141a; --fg:#e5e7eb; --muted:#9ca3af; --grid:#283039;
+    --line:#60a5fa; --fill:#60a5fa; --goal:#f87171; --card:#1a222c;
+  }
+  html,body { background:var(--bg); color:var(--fg); margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width:1000px; margin:0 auto; padding:24px 16px 40px; }
+  h1 { font-size:1.35rem; margin:0 0 2px; }
+  .sub { color:var(--muted); font-size:.9rem; margin:0 0 18px; }
+  .sub a { color:var(--line); }
+  .stats { display:flex; flex-wrap:wrap; gap:12px; margin:0 0 18px; }
+  .stat { background:var(--card); border-radius:12px; padding:14px 18px; flex:1 1 140px; }
+  .stat .num { font-size:1.5rem; font-weight:700; }
+  .stat .lbl { color:var(--muted); font-size:.8rem; margin-top:2px; }
+  .chart { width:100%; height:auto; background:var(--bg); border-radius:12px; }
+  text.axis { fill:var(--muted); font-size:12px; }
+  text.axis-title { fill:var(--fg); font-size:13px; font-weight:600; }
+  text.goal-label { fill:var(--goal); font-size:12px; font-weight:600; }
+  text.callout { fill:var(--line); font-size:13px; font-weight:700; }
+  .empty { color:var(--muted); padding:40px; text-align:center; }
+  .foot { color:var(--muted); font-size:.78rem; margin-top:16px; }
+  .live { display:inline-block; width:8px; height:8px; border-radius:50%;
+    background:#16a34a; margin-right:6px; vertical-align:middle;
+    animation:pulse 1.6s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>FLIP-OR and the CHAMPIONS of NEFARITY - WAVE 2!!</h1>
+    <p class="sub">by Hatter Toys ·
+      <a href="https://www.kickstarter.com/projects/1332620926/flip-or-and-the-champions-of-nefarity-wave-2" target="_blank" rel="noopener">View on Kickstarter</a></p>
+    
+        <div class="stats">
+          <div class="stat"><div class="num">$125,716</div><div class="lbl">pledged</div></div>
+          <div class="stat"><div class="num">62.9%</div><div class="lbl">of $200,000 goal</div></div>
+          <div class="stat"><div class="num">386</div><div class="lbl">backers</div></div>
+          <div class="stat"><div class="num">34</div><div class="lbl">days to go</div></div>
+        </div>
+    <svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" class="chart">
+<rect x="0" y="0" width="960" height="540" fill="var(--bg)"/>
+<line x1="90" y1="470.0" x2="920" y2="470.0" stroke="var(--grid)" stroke-width="1"/>
+<text x="80" y="474.0" text-anchor="end" class="axis">$0</text>
+<line x1="90" y1="390.0" x2="920" y2="390.0" stroke="var(--grid)" stroke-width="1"/>
+<text x="80" y="394.0" text-anchor="end" class="axis">$44,000</text>
+<line x1="90" y1="310.0" x2="920" y2="310.0" stroke="var(--grid)" stroke-width="1"/>
+<text x="80" y="314.0" text-anchor="end" class="axis">$88,000</text>
+<line x1="90" y1="230.0" x2="920" y2="230.0" stroke="var(--grid)" stroke-width="1"/>
+<text x="80" y="234.0" text-anchor="end" class="axis">$132,000</text>
+<line x1="90" y1="150.0" x2="920" y2="150.0" stroke="var(--grid)" stroke-width="1"/>
+<text x="80" y="154.0" text-anchor="end" class="axis">$176,000</text>
+<line x1="90" y1="70.0" x2="920" y2="70.0" stroke="var(--grid)" stroke-width="1"/>
+<text x="80" y="74.0" text-anchor="end" class="axis">$220,000</text>
+<line x1="90" y1="106.4" x2="920" y2="106.4" stroke="var(--goal)" stroke-width="2" stroke-dasharray="6 5"/>
+<text x="920" y="98.4" text-anchor="end" class="goal-label">Goal $200,000</text>
+<line x1="90.0" y1="70" x2="90.0" y2="470" stroke="var(--grid)" stroke-width="1"/>
+<text x="90.0" y="492.0" text-anchor="middle" class="axis">Oct 13</text>
+<line x1="228.3" y1="70" x2="228.3" y2="470" stroke="var(--grid)" stroke-width="1"/>
+<text x="228.3" y="492.0" text-anchor="middle" class="axis">Oct 19</text>
+<line x1="366.7" y1="70" x2="366.7" y2="470" stroke="var(--grid)" stroke-width="1"/>
+<text x="366.7" y="492.0" text-anchor="middle" class="axis">Oct 25</text>
+<line x1="505.0" y1="70" x2="505.0" y2="470" stroke="var(--grid)" stroke-width="1"/>
+<text x="505.0" y="492.0" text-anchor="middle" class="axis">Oct 31</text>
+<line x1="643.3" y1="70" x2="643.3" y2="470" stroke="var(--grid)" stroke-width="1"/>
+<text x="643.3" y="492.0" text-anchor="middle" class="axis">Nov 06</text>
+<line x1="781.7" y1="70" x2="781.7" y2="470" stroke="var(--grid)" stroke-width="1"/>
+<text x="781.7" y="492.0" text-anchor="middle" class="axis">Nov 12</text>
+<line x1="920.0" y1="70" x2="920.0" y2="470" stroke="var(--grid)" stroke-width="1"/>
+<text x="920.0" y="492.0" text-anchor="middle" class="axis">Nov 17</text>
+<polygon points="90.0,470.0 90.0,470.0 102.8,241.4 102.8,470.0" fill="var(--fill)" opacity="0.18"/>
+<polyline points="90.0,470.0 102.8,241.4" fill="none" stroke="var(--line)" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="90.0" cy="470.0" r="4" fill="var(--line)"/>
+<circle cx="102.8" cy="241.4" r="4" fill="var(--line)"/>
+<circle cx="102.8" cy="241.4" r="6" fill="var(--line)" stroke="var(--bg)" stroke-width="2"/>
+<text x="92.8" y="229.4" text-anchor="end" class="callout">$125,716</text>
+<text x="505.0" y="522" text-anchor="middle" class="axis-title">Date</text>
+<text x="22" y="270.0" text-anchor="middle" class="axis-title" transform="rotate(-90 22 270.0)">Dollars pledged (USD)</text>
+</svg>
+    <p class="foot"><span class="live"></span>Auto-refreshes every 60s ·
+      2 snapshot(s) logged · last built 2026-10-14 09:00 EDT ·
+      deadline Nov 17 2026 08:00 PM UTC-05:00</p>
+  </div>
+</body>
+</html>

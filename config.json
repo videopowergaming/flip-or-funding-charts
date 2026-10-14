@@ -1,7 +1,16 @@
 {
   "project": "Flip-Or Funding Charts",
   "created": "2026-10-14",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "data_dir": "data",
-  "charts_dir": "charts"
+  "charts_dir": "charts",
+  "campaign": {
+    "name": "FLIP-OR and the CHAMPIONS of NEFARITY - WAVE 2!!",
+    "creator": "Hatter Toys",
+    "url": "https://www.kickstarter.com/projects/1332620926/flip-or-and-the-champions-of-nefarity-wave-2",
+    "goal_usd": 200000,
+    "currency": "USD",
+    "deadline": "2026-11-17T20:00:00-05:00",
+    "funding_log": "data/flipor_wave2_funding_log.json"
+  }
 }
