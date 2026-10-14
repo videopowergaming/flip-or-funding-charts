@@ -188,10 +188,12 @@ def render_window_chart(log: list, days: int = 7) -> str:
         return ""
     tz = points[0][0].tzinfo
     first_date = points[0][0].date()
-    end_date = points[-1][0].date()
-    start_date = max(first_date, end_date - dt.timedelta(days=days - 1))
+    latest_date = points[-1][0].date()
+    # always a full `days`-day span: anchored at launch early on, then rolling forward
+    start_date = max(first_date, latest_date - dt.timedelta(days=days - 1))
+    window_end = start_date + dt.timedelta(days=days - 1)  # inclusive -> `days` day span
     x0 = dt.datetime.combine(start_date, dt.time(0, 0), tzinfo=tz)
-    x1 = dt.datetime.combine(end_date + dt.timedelta(days=1), dt.time(0, 0), tzinfo=tz)
+    x1 = dt.datetime.combine(window_end + dt.timedelta(days=1), dt.time(0, 0), tzinfo=tz)
     return _line_chart(points, goal, x0, x1)
 
 
@@ -387,7 +389,7 @@ def build(log: list) -> None:
     {stat_cards}
     <h2 class="caltitle">Full campaign — launch → deadline</h2>
     {chart_svg}
-    <h2 class="caltitle">Last 7 days (zoomed)</h2>
+    <h2 class="caltitle">7-day window (zoomed)</h2>
     {window_svg}
     {pull_log_html}
     {calendar_html}
