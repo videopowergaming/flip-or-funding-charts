@@ -107,7 +107,7 @@ def render_chart(log: list) -> str:
         v = y_max * i / steps
         y = y_px(v)
         svg.append(f'<line x1="{ML}" y1="{y:.1f}" x2="{W-MR}" y2="{y:.1f}" stroke="var(--grid)" stroke-width="1"/>')
-        svg.append(f'<text x="{ML-10}" y="{y+4:.1f}" text-anchor="end" class="axis">{_fmt_usd(v)}</text>')
+        svg.append(f'<text x="{ML-10}" y="{y+4:.1f}" text-anchor="end" class="ylab">{_fmt_usd(v)}</text>')
 
     # goal line
     gy = y_px(goal)
@@ -120,7 +120,11 @@ def render_chart(log: list) -> str:
         t = t0 + dt.timedelta(seconds=span * i / xticks)
         x = x_px(t)
         svg.append(f'<line x1="{x:.1f}" y1="{MT}" x2="{x:.1f}" y2="{MT+plot_h}" stroke="var(--grid)" stroke-width="1"/>')
-        svg.append(f'<text x="{x:.1f}" y="{MT+plot_h+22:.1f}" text-anchor="middle" class="axis">{t.strftime("%b %d")}</text>')
+        svg.append(f'<text x="{x:.1f}" y="{MT+plot_h+22:.1f}" text-anchor="middle" class="xlab">{t.strftime("%b %d")}</text>')
+
+    # colored axis spines (y = purple, x = teal)
+    svg.append(f'<line x1="{ML}" y1="{MT}" x2="{ML}" y2="{MT+plot_h}" stroke="var(--yaxis)" stroke-width="3"/>')
+    svg.append(f'<line x1="{ML}" y1="{MT+plot_h}" x2="{W-MR}" y2="{MT+plot_h}" stroke="var(--xaxis)" stroke-width="3"/>')
 
     # funding line + area
     if len(points) >= 2:
@@ -137,9 +141,9 @@ def render_chart(log: list) -> str:
         svg.append(f'<circle cx="{lx:.1f}" cy="{lv:.1f}" r="6" fill="var(--line)" stroke="var(--bg)" stroke-width="2"/>')
         svg.append(f'<text x="{lx-10:.1f}" y="{lv-12:.1f}" text-anchor="end" class="callout">{_fmt_usd(latest[1])}</text>')
 
-    # axis titles
-    svg.append(f'<text x="{ML+plot_w/2:.1f}" y="{H-18}" text-anchor="middle" class="axis-title">Date</text>')
-    svg.append(f'<text x="22" y="{MT+plot_h/2:.1f}" text-anchor="middle" class="axis-title" transform="rotate(-90 22 {MT+plot_h/2:.1f})">Dollars pledged (USD)</text>')
+    # axis titles (colored to match their axes)
+    svg.append(f'<text x="{ML+plot_w/2:.1f}" y="{H-18}" text-anchor="middle" class="xtitle">Date</text>')
+    svg.append(f'<text x="22" y="{MT+plot_h/2:.1f}" text-anchor="middle" class="ytitle" transform="rotate(-90 22 {MT+plot_h/2:.1f})">Dollars pledged (USD)</text>')
 
     svg.append("</svg>")
     return "\n".join(svg), latest, goal, deadline
@@ -161,12 +165,14 @@ def build(log: list) -> None:
     pct = (latest[1] / goal * 100) if latest else 0
     stat_cards = ""
     if latest:
+        as_of = latest[0].strftime("%A, %b %d %Y · %I:%M %p %Z")
         stat_cards = f"""
+        <p class="asof">As of <strong>{as_of}</strong></p>
         <div class="stats">
-          <div class="stat"><div class="num">{_fmt_usd(latest[1])}</div><div class="lbl">pledged</div></div>
-          <div class="stat"><div class="num">{pct:.1f}%</div><div class="lbl">of {_fmt_usd(goal)} goal</div></div>
-          <div class="stat"><div class="num">{latest[2]:,}</div><div class="lbl">backers</div></div>
-          <div class="stat"><div class="num">{days_left}</div><div class="lbl">days to go</div></div>
+          <div class="stat s-pledged"><div class="num">{_fmt_usd(latest[1])}</div><div class="lbl">pledged</div></div>
+          <div class="stat s-pct"><div class="num">{pct:.1f}%</div><div class="lbl">of {_fmt_usd(goal)} goal</div></div>
+          <div class="stat s-backers"><div class="num">{latest[2]:,}</div><div class="lbl">backers</div></div>
+          <div class="stat s-days"><div class="num">{days_left}</div><div class="lbl">days to go</div></div>
         </div>"""
 
     title = html.escape(CAMP["name"])
@@ -181,16 +187,19 @@ def build(log: list) -> None:
   :root {{
     --bg:#ffffff; --fg:#111827; --muted:#6b7280; --grid:#e5e7eb;
     --line:#2563eb; --fill:#2563eb; --goal:#dc2626; --card:#f3f4f6;
+    --xaxis:#0891b2; --yaxis:#7c3aed; --xlabel:#0e7490; --ylabel:#6d28d9;
   }}
   @media (prefers-color-scheme: dark) {{
     :root:not([data-theme="light"]) {{
       --bg:#0f141a; --fg:#e5e7eb; --muted:#9ca3af; --grid:#283039;
       --line:#60a5fa; --fill:#60a5fa; --goal:#f87171; --card:#1a222c;
+      --xaxis:#22d3ee; --yaxis:#a78bfa; --xlabel:#67e8f9; --ylabel:#c4b5fd;
     }}
   }}
   :root[data-theme="dark"] {{
     --bg:#0f141a; --fg:#e5e7eb; --muted:#9ca3af; --grid:#283039;
     --line:#60a5fa; --fill:#60a5fa; --goal:#f87171; --card:#1a222c;
+    --xaxis:#22d3ee; --yaxis:#a78bfa; --xlabel:#67e8f9; --ylabel:#c4b5fd;
   }}
   html,body {{ background:var(--bg); color:var(--fg); margin:0;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }}
@@ -198,13 +207,22 @@ def build(log: list) -> None:
   h1 {{ font-size:1.35rem; margin:0 0 2px; }}
   .sub {{ color:var(--muted); font-size:.9rem; margin:0 0 18px; }}
   .sub a {{ color:var(--line); }}
+  .asof {{ font-size:.92rem; margin:0 0 12px; color:var(--fg); }}
+  .asof strong {{ color:var(--line); }}
   .stats {{ display:flex; flex-wrap:wrap; gap:12px; margin:0 0 18px; }}
-  .stat {{ background:var(--card); border-radius:12px; padding:14px 18px; flex:1 1 140px; }}
+  .stat {{ background:var(--card); border-radius:12px; padding:14px 18px; flex:1 1 140px;
+    border-left:5px solid var(--muted); }}
   .stat .num {{ font-size:1.5rem; font-weight:700; }}
   .stat .lbl {{ color:var(--muted); font-size:.8rem; margin-top:2px; }}
+  .s-pledged {{ border-left-color:var(--line); }}   .s-pledged .num {{ color:var(--line); }}
+  .s-pct {{ border-left-color:var(--yaxis); }}       .s-pct .num {{ color:var(--yaxis); }}
+  .s-backers {{ border-left-color:var(--xaxis); }}   .s-backers .num {{ color:var(--xaxis); }}
+  .s-days {{ border-left-color:var(--goal); }}       .s-days .num {{ color:var(--goal); }}
   .chart {{ width:100%; height:auto; background:var(--bg); border-radius:12px; }}
-  text.axis {{ fill:var(--muted); font-size:12px; }}
-  text.axis-title {{ fill:var(--fg); font-size:13px; font-weight:600; }}
+  text.xlab {{ fill:var(--xlabel); font-size:12px; font-weight:600; }}
+  text.ylab {{ fill:var(--ylabel); font-size:12px; font-weight:600; }}
+  text.xtitle {{ fill:var(--xaxis); font-size:13px; font-weight:700; }}
+  text.ytitle {{ fill:var(--yaxis); font-size:13px; font-weight:700; }}
   text.goal-label {{ fill:var(--goal); font-size:12px; font-weight:600; }}
   text.callout {{ fill:var(--line); font-size:13px; font-weight:700; }}
   .empty {{ color:var(--muted); padding:40px; text-align:center; }}

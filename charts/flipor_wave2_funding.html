@@ -9,16 +9,19 @@
   :root {
     --bg:#ffffff; --fg:#111827; --muted:#6b7280; --grid:#e5e7eb;
     --line:#2563eb; --fill:#2563eb; --goal:#dc2626; --card:#f3f4f6;
+    --xaxis:#0891b2; --yaxis:#7c3aed; --xlabel:#0e7490; --ylabel:#6d28d9;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg:#0f141a; --fg:#e5e7eb; --muted:#9ca3af; --grid:#283039;
       --line:#60a5fa; --fill:#60a5fa; --goal:#f87171; --card:#1a222c;
+      --xaxis:#22d3ee; --yaxis:#a78bfa; --xlabel:#67e8f9; --ylabel:#c4b5fd;
     }
   }
   :root[data-theme="dark"] {
     --bg:#0f141a; --fg:#e5e7eb; --muted:#9ca3af; --grid:#283039;
     --line:#60a5fa; --fill:#60a5fa; --goal:#f87171; --card:#1a222c;
+    --xaxis:#22d3ee; --yaxis:#a78bfa; --xlabel:#67e8f9; --ylabel:#c4b5fd;
   }
   html,body { background:var(--bg); color:var(--fg); margin:0;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
@@ -26,13 +29,22 @@
   h1 { font-size:1.35rem; margin:0 0 2px; }
   .sub { color:var(--muted); font-size:.9rem; margin:0 0 18px; }
   .sub a { color:var(--line); }
+  .asof { font-size:.92rem; margin:0 0 12px; color:var(--fg); }
+  .asof strong { color:var(--line); }
   .stats { display:flex; flex-wrap:wrap; gap:12px; margin:0 0 18px; }
-  .stat { background:var(--card); border-radius:12px; padding:14px 18px; flex:1 1 140px; }
+  .stat { background:var(--card); border-radius:12px; padding:14px 18px; flex:1 1 140px;
+    border-left:5px solid var(--muted); }
   .stat .num { font-size:1.5rem; font-weight:700; }
   .stat .lbl { color:var(--muted); font-size:.8rem; margin-top:2px; }
+  .s-pledged { border-left-color:var(--line); }   .s-pledged .num { color:var(--line); }
+  .s-pct { border-left-color:var(--yaxis); }       .s-pct .num { color:var(--yaxis); }
+  .s-backers { border-left-color:var(--xaxis); }   .s-backers .num { color:var(--xaxis); }
+  .s-days { border-left-color:var(--goal); }       .s-days .num { color:var(--goal); }
   .chart { width:100%; height:auto; background:var(--bg); border-radius:12px; }
-  text.axis { fill:var(--muted); font-size:12px; }
-  text.axis-title { fill:var(--fg); font-size:13px; font-weight:600; }
+  text.xlab { fill:var(--xlabel); font-size:12px; font-weight:600; }
+  text.ylab { fill:var(--ylabel); font-size:12px; font-weight:600; }
+  text.xtitle { fill:var(--xaxis); font-size:13px; font-weight:700; }
+  text.ytitle { fill:var(--yaxis); font-size:13px; font-weight:700; }
   text.goal-label { fill:var(--goal); font-size:12px; font-weight:600; }
   text.callout { fill:var(--line); font-size:13px; font-weight:700; }
   .empty { color:var(--muted); padding:40px; text-align:center; }
@@ -49,53 +61,56 @@
     <p class="sub">by Hatter Toys ·
       <a href="https://www.kickstarter.com/projects/1332620926/flip-or-and-the-champions-of-nefarity-wave-2" target="_blank" rel="noopener">View on Kickstarter</a></p>
     
+        <p class="asof">As of <strong>Wednesday, Oct 14 2026 · 09:00 AM UTC-04:00</strong></p>
         <div class="stats">
-          <div class="stat"><div class="num">$125,716</div><div class="lbl">pledged</div></div>
-          <div class="stat"><div class="num">62.9%</div><div class="lbl">of $200,000 goal</div></div>
-          <div class="stat"><div class="num">386</div><div class="lbl">backers</div></div>
-          <div class="stat"><div class="num">34</div><div class="lbl">days to go</div></div>
+          <div class="stat s-pledged"><div class="num">$125,716</div><div class="lbl">pledged</div></div>
+          <div class="stat s-pct"><div class="num">62.9%</div><div class="lbl">of $200,000 goal</div></div>
+          <div class="stat s-backers"><div class="num">386</div><div class="lbl">backers</div></div>
+          <div class="stat s-days"><div class="num">34</div><div class="lbl">days to go</div></div>
         </div>
     <svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" class="chart">
 <rect x="0" y="0" width="960" height="540" fill="var(--bg)"/>
 <line x1="90" y1="470.0" x2="920" y2="470.0" stroke="var(--grid)" stroke-width="1"/>
-<text x="80" y="474.0" text-anchor="end" class="axis">$0</text>
+<text x="80" y="474.0" text-anchor="end" class="ylab">$0</text>
 <line x1="90" y1="390.0" x2="920" y2="390.0" stroke="var(--grid)" stroke-width="1"/>
-<text x="80" y="394.0" text-anchor="end" class="axis">$44,000</text>
+<text x="80" y="394.0" text-anchor="end" class="ylab">$44,000</text>
 <line x1="90" y1="310.0" x2="920" y2="310.0" stroke="var(--grid)" stroke-width="1"/>
-<text x="80" y="314.0" text-anchor="end" class="axis">$88,000</text>
+<text x="80" y="314.0" text-anchor="end" class="ylab">$88,000</text>
 <line x1="90" y1="230.0" x2="920" y2="230.0" stroke="var(--grid)" stroke-width="1"/>
-<text x="80" y="234.0" text-anchor="end" class="axis">$132,000</text>
+<text x="80" y="234.0" text-anchor="end" class="ylab">$132,000</text>
 <line x1="90" y1="150.0" x2="920" y2="150.0" stroke="var(--grid)" stroke-width="1"/>
-<text x="80" y="154.0" text-anchor="end" class="axis">$176,000</text>
+<text x="80" y="154.0" text-anchor="end" class="ylab">$176,000</text>
 <line x1="90" y1="70.0" x2="920" y2="70.0" stroke="var(--grid)" stroke-width="1"/>
-<text x="80" y="74.0" text-anchor="end" class="axis">$220,000</text>
+<text x="80" y="74.0" text-anchor="end" class="ylab">$220,000</text>
 <line x1="90" y1="106.4" x2="920" y2="106.4" stroke="var(--goal)" stroke-width="2" stroke-dasharray="6 5"/>
 <text x="920" y="98.4" text-anchor="end" class="goal-label">Goal $200,000</text>
 <line x1="90.0" y1="70" x2="90.0" y2="470" stroke="var(--grid)" stroke-width="1"/>
-<text x="90.0" y="492.0" text-anchor="middle" class="axis">Oct 13</text>
+<text x="90.0" y="492.0" text-anchor="middle" class="xlab">Oct 13</text>
 <line x1="228.3" y1="70" x2="228.3" y2="470" stroke="var(--grid)" stroke-width="1"/>
-<text x="228.3" y="492.0" text-anchor="middle" class="axis">Oct 19</text>
+<text x="228.3" y="492.0" text-anchor="middle" class="xlab">Oct 19</text>
 <line x1="366.7" y1="70" x2="366.7" y2="470" stroke="var(--grid)" stroke-width="1"/>
-<text x="366.7" y="492.0" text-anchor="middle" class="axis">Oct 25</text>
+<text x="366.7" y="492.0" text-anchor="middle" class="xlab">Oct 25</text>
 <line x1="505.0" y1="70" x2="505.0" y2="470" stroke="var(--grid)" stroke-width="1"/>
-<text x="505.0" y="492.0" text-anchor="middle" class="axis">Oct 31</text>
+<text x="505.0" y="492.0" text-anchor="middle" class="xlab">Oct 31</text>
 <line x1="643.3" y1="70" x2="643.3" y2="470" stroke="var(--grid)" stroke-width="1"/>
-<text x="643.3" y="492.0" text-anchor="middle" class="axis">Nov 06</text>
+<text x="643.3" y="492.0" text-anchor="middle" class="xlab">Nov 06</text>
 <line x1="781.7" y1="70" x2="781.7" y2="470" stroke="var(--grid)" stroke-width="1"/>
-<text x="781.7" y="492.0" text-anchor="middle" class="axis">Nov 12</text>
+<text x="781.7" y="492.0" text-anchor="middle" class="xlab">Nov 12</text>
 <line x1="920.0" y1="70" x2="920.0" y2="470" stroke="var(--grid)" stroke-width="1"/>
-<text x="920.0" y="492.0" text-anchor="middle" class="axis">Nov 17</text>
+<text x="920.0" y="492.0" text-anchor="middle" class="xlab">Nov 17</text>
+<line x1="90" y1="70" x2="90" y2="470" stroke="var(--yaxis)" stroke-width="3"/>
+<line x1="90" y1="470" x2="920" y2="470" stroke="var(--xaxis)" stroke-width="3"/>
 <polygon points="90.0,470.0 90.0,470.0 102.8,241.4 102.8,470.0" fill="var(--fill)" opacity="0.18"/>
 <polyline points="90.0,470.0 102.8,241.4" fill="none" stroke="var(--line)" stroke-width="3" stroke-linejoin="round"/>
 <circle cx="90.0" cy="470.0" r="4" fill="var(--line)"/>
 <circle cx="102.8" cy="241.4" r="4" fill="var(--line)"/>
 <circle cx="102.8" cy="241.4" r="6" fill="var(--line)" stroke="var(--bg)" stroke-width="2"/>
 <text x="92.8" y="229.4" text-anchor="end" class="callout">$125,716</text>
-<text x="505.0" y="522" text-anchor="middle" class="axis-title">Date</text>
-<text x="22" y="270.0" text-anchor="middle" class="axis-title" transform="rotate(-90 22 270.0)">Dollars pledged (USD)</text>
+<text x="505.0" y="522" text-anchor="middle" class="xtitle">Date</text>
+<text x="22" y="270.0" text-anchor="middle" class="ytitle" transform="rotate(-90 22 270.0)">Dollars pledged (USD)</text>
 </svg>
     <p class="foot"><span class="live"></span>Auto-refreshes every 60s ·
-      2 snapshot(s) logged · last built 2026-10-14 09:00 EDT ·
+      2 snapshot(s) logged · last built 2026-10-14 09:11 EDT ·
       deadline Nov 17 2026 08:00 PM UTC-05:00</p>
   </div>
 </body>
