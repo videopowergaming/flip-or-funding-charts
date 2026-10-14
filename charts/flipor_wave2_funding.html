@@ -56,6 +56,7 @@
   table.cal th { color:var(--muted); font-weight:600; border-bottom:2px solid var(--xaxis); }
   table.cal td.r, table.cal th.r { text-align:right; }
   table.cal td.t { color:var(--muted); font-size:.8rem; }
+  table.cal .tz { color:var(--muted); font-size:.72rem; }
   table.cal td.gain { color:#16a34a; font-weight:600; }
   table.cal tr.gapday td { color:var(--muted); font-style:italic; background:var(--card); }
   .empty { color:var(--muted); padding:40px; text-align:center; }
@@ -121,29 +122,13 @@
 <text x="505.0" y="522" text-anchor="middle" class="xtitle">Date</text>
 <text x="22" y="270.0" text-anchor="middle" class="ytitle" transform="rotate(-90 22 270.0)">Dollars pledged (USD)</text>
 </svg>
-    <h2 class="caltitle">Hourly detail — Wednesday, Oct 14 2026</h2><svg viewBox="0 0 960 340" xmlns="http://www.w3.org/2000/svg" class="chart">
-<rect x="0" y="0" width="960" height="340" fill="var(--bg)"/>
-<line x1="95" y1="286.0" x2="930" y2="286.0" stroke="var(--grid)" stroke-width="1"/>
-<text x="85" y="290.0" text-anchor="end" class="ylab">$125,492</text>
-<line x1="95" y1="220.5" x2="930" y2="220.5" stroke="var(--grid)" stroke-width="1"/>
-<text x="85" y="224.5" text-anchor="end" class="ylab">$125,915</text>
-<line x1="95" y1="155.0" x2="930" y2="155.0" stroke="var(--grid)" stroke-width="1"/>
-<text x="85" y="159.0" text-anchor="end" class="ylab">$126,338</text>
-<line x1="95" y1="89.5" x2="930" y2="89.5" stroke="var(--grid)" stroke-width="1"/>
-<text x="85" y="93.5" text-anchor="end" class="ylab">$126,761</text>
-<line x1="95" y1="24.0" x2="930" y2="24.0" stroke="var(--grid)" stroke-width="1"/>
-<text x="85" y="28.0" text-anchor="end" class="ylab">$127,184</text>
-<line x1="95.0" y1="24" x2="95.0" y2="286" stroke="var(--grid)" stroke-width="1"/>
-<text x="95.0" y="306.0" text-anchor="middle" class="xlab">9 AM</text>
-<line x1="930.0" y1="24" x2="930.0" y2="286" stroke="var(--grid)" stroke-width="1"/>
-<text x="930.0" y="306.0" text-anchor="middle" class="xlab">10 AM</text>
-<line x1="95" y1="24" x2="95" y2="286" stroke="var(--yaxis)" stroke-width="3"/>
-<line x1="95" y1="286" x2="930" y2="286" stroke="var(--xaxis)" stroke-width="3"/>
-<polyline points="95.0,251.3 930.0,58.7" fill="none" stroke="var(--line)" stroke-width="3" stroke-linejoin="round"/>
-<circle cx="95.0" cy="251.3" r="4" fill="var(--line)"/>
-<circle cx="930.0" cy="58.7" r="4" fill="var(--line)"/>
-<text x="922.0" y="48.7" text-anchor="end" class="callout">$126,960</text>
-</svg><p class="hourcap">Started: <strong>Wed Oct 14 · 9 AM</strong> &nbsp;·&nbsp; Latest: <strong>Wed Oct 14 · 10 AM</strong> &nbsp;·&nbsp; 2 snapshot(s)</p>
+    
+    <h2 class="caltitle">Data pull log (3 pulls)</h2>
+    <table class="cal">
+      <thead><tr><th>Date &amp; time</th><th class="r">Pledged</th>
+        <th class="r">Change</th><th class="r">Backers</th></tr></thead>
+      <tbody><tr><td>Wed Oct 14, 2026 · 10:19 AM <span class="tz">UTC-04:00</span></td><td class="r">$126,960</td><td class="r gain">+$1,244</td><td class="r">392</td></tr><tr><td>Wed Oct 14, 2026 · 9:00 AM <span class="tz">UTC-04:00</span></td><td class="r">$125,716</td><td class="r gain">+$125,716</td><td class="r">386</td></tr><tr><td>Tue Oct 13, 2026 · 8:00 PM <span class="tz">UTC-04:00</span></td><td class="r">$0</td><td class="r gain"></td><td class="r">0</td></tr></tbody>
+    </table>
     
     <h2 class="caltitle">Update calendar</h2>
     <table class="cal">
@@ -152,7 +137,7 @@
       <tbody><tr><td>Tue Oct 13</td><td class="r">$0</td><td class="r gain"></td><td class="r">0</td><td class="r">1</td><td class="t">last 08:00 PM</td></tr><tr><td>Wed Oct 14</td><td class="r">$126,960</td><td class="r gain">+$126,960</td><td class="r">392</td><td class="r">2</td><td class="t">last 10:19 AM</td></tr></tbody>
     </table>
     <p class="foot"><span class="live"></span>Auto-refreshes every 60s ·
-      3 snapshot(s) logged · last built 2026-10-14 10:25 EDT ·
+      3 snapshot(s) logged · last built 2026-10-14 10:32 EDT ·
       deadline Nov 17 2026 08:00 PM UTC-05:00</p>
   </div>
 </body>

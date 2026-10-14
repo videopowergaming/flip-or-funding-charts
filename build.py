@@ -174,87 +174,36 @@ def _hour_label(t: dt.datetime) -> str:
     return f"{hr} {t.strftime('%p')}"
 
 
-def render_hourly_chart(log: list, window_hours: int = 24) -> str:
-    """Zoomed, auto-scaled view of the most recent snapshots with hourly x labels
-    (9 AM, 10 AM, 11 AM...) so hour-to-hour movement is visible."""
+def render_pull_log(log: list) -> str:
+    """Table listing every data pull: date & time + pledge level (newest first)."""
+    if not log:
+        return ""
     pts = [
         (dt.datetime.fromisoformat(e["timestamp"]), e["pledged_usd"], e["backers"])
         for e in log
     ]
-    pts.sort(key=lambda p: p[0])
-    if len(pts) < 2:
-        return ""
-    # scope to the latest DAY; fall back to the last few points if the day has only one
-    day = pts[-1][0].date()
-    win = [p for p in pts if p[0].date() == day]
-    if len(win) < 2:
-        win = pts[-min(len(pts), 6):]
-
-    W, H = 960, 340
-    ML, MR, MT, MB = 95, 30, 24, 54
-    plot_w, plot_h = W - ML - MR, H - MT - MB
-    t0, t1 = win[0][0], win[-1][0]
-    span = (t1 - t0).total_seconds() or 1
-    ys = [p[1] for p in win]
-    ymin, ymax = min(ys), max(ys)
-    pad = max((ymax - ymin) * 0.18, 1)
-    y0, y1 = ymin - pad, ymax + pad
-
-    def xp(t):
-        return ML + plot_w * ((t - t0).total_seconds() / span)
-
-    def yp(v):
-        return MT + plot_h * (1 - (v - y0) / (y1 - y0))
-
-    svg = [f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" class="chart">']
-    svg.append(f'<rect x="0" y="0" width="{W}" height="{H}" fill="var(--bg)"/>')
-
-    # y gridlines + $ labels
-    for i in range(5):
-        v = y0 + (y1 - y0) * i / 4
-        y = yp(v)
-        svg.append(f'<line x1="{ML}" y1="{y:.1f}" x2="{W-MR}" y2="{y:.1f}" stroke="var(--grid)" stroke-width="1"/>')
-        svg.append(f'<text x="{ML-10}" y="{y+4:.1f}" text-anchor="end" class="ylab">{_fmt_usd(v)}</text>')
-
-    # x ticks at each snapshot, labeled by hour (thin them if crowded)
-    step = max(1, len(win) // 12)
-    for i, (t, v, _) in enumerate(win):
-        x = xp(t)
-        if i % step == 0 or i == len(win) - 1:
-            svg.append(f'<line x1="{x:.1f}" y1="{MT}" x2="{x:.1f}" y2="{MT+plot_h}" stroke="var(--grid)" stroke-width="1"/>')
-            svg.append(f'<text x="{x:.1f}" y="{MT+plot_h+20:.1f}" text-anchor="middle" class="xlab">{_hour_label(t)}</text>')
-
-    # colored spines
-    svg.append(f'<line x1="{ML}" y1="{MT}" x2="{ML}" y2="{MT+plot_h}" stroke="var(--yaxis)" stroke-width="3"/>')
-    svg.append(f'<line x1="{ML}" y1="{MT+plot_h}" x2="{W-MR}" y2="{MT+plot_h}" stroke="var(--xaxis)" stroke-width="3"/>')
-
-    # line + points
-    line = " ".join(f"{xp(t):.1f},{yp(v):.1f}" for t, v, _ in win)
-    svg.append(f'<polyline points="{line}" fill="none" stroke="var(--line)" stroke-width="3" stroke-linejoin="round"/>')
-    for t, v, _ in win:
-        svg.append(f'<circle cx="{xp(t):.1f}" cy="{yp(v):.1f}" r="4" fill="var(--line)"/>')
-    # value label on the last point
-    lt, lv, _ = win[-1]
-    svg.append(f'<text x="{xp(lt)-8:.1f}" y="{yp(lv)-10:.1f}" text-anchor="end" class="callout">{_fmt_usd(lv)}</text>')
-
-    svg.append("</svg>")
-
-    # caption: starting time + latest time for the day (kept even if hours were missed)
-    start_t, last_t2 = win[0][0], win[-1][0]
-    start_full = start_t.strftime("%a %b %d · ") + _hour_label(start_t)
-    last_full = last_t2.strftime("%a %b %d · ") + _hour_label(last_t2)
-    # detect missed hours (consecutive gaps noticeably longer than 1h)
-    missed = 0
-    for a, b in zip(win, win[1:]):
-        gap_h = (b[0] - a[0]).total_seconds() / 3600
-        if gap_h > 1.6:
-            missed += int(round(gap_h)) - 1
-    miss_note = f' · <span class="miss">{missed} hour(s) missed (shown as gaps)</span>' if missed else ""
-    caption = (f'<p class="hourcap">Started: <strong>{start_full}</strong> &nbsp;·&nbsp; '
-               f'Latest: <strong>{last_full}</strong> &nbsp;·&nbsp; {len(win)} snapshot(s){miss_note}</p>')
-
-    return (f'<h2 class="caltitle">Hourly detail — {day.strftime("%A, %b %d %Y")}</h2>'
-            + "\n".join(svg) + caption)
+    pts.sort(key=lambda p: p[0])  # chronological, to compute change
+    rows = []
+    for i in range(len(pts) - 1, -1, -1):  # newest first
+        t, pledged, backers = pts[i]
+        prev = pts[i - 1][1] if i > 0 else None
+        change = "" if prev is None else f"+{_fmt_usd(pledged - prev)}"
+        clock = t.strftime("%I:%M %p").lstrip("0")
+        when = t.strftime("%a %b %d, %Y") + " · " + clock
+        when += f' <span class="tz">{t.strftime("%Z")}</span>'
+        rows.append(
+            f'<tr><td>{when}</td>'
+            f'<td class="r">{_fmt_usd(pledged)}</td>'
+            f'<td class="r gain">{change}</td>'
+            f'<td class="r">{backers:,}</td></tr>'
+        )
+    return f"""
+    <h2 class="caltitle">Data pull log ({len(pts)} pulls)</h2>
+    <table class="cal">
+      <thead><tr><th>Date &amp; time</th><th class="r">Pledged</th>
+        <th class="r">Change</th><th class="r">Backers</th></tr></thead>
+      <tbody>{''.join(rows)}</tbody>
+    </table>"""
 
 
 def render_calendar(log: list) -> str:
@@ -330,7 +279,7 @@ def build(log: list) -> None:
           <div class="stat s-days"><div class="num">{days_left}</div><div class="lbl">days to go</div></div>
         </div>"""
 
-    hourly_html = render_hourly_chart(log) if log else ""
+    pull_log_html = render_pull_log(log) if log else ""
     calendar_html = render_calendar(log)
     title = html.escape(CAMP["name"])
     page = f"""<!DOCTYPE html>
@@ -391,6 +340,7 @@ def build(log: list) -> None:
   table.cal th {{ color:var(--muted); font-weight:600; border-bottom:2px solid var(--xaxis); }}
   table.cal td.r, table.cal th.r {{ text-align:right; }}
   table.cal td.t {{ color:var(--muted); font-size:.8rem; }}
+  table.cal .tz {{ color:var(--muted); font-size:.72rem; }}
   table.cal td.gain {{ color:#16a34a; font-weight:600; }}
   table.cal tr.gapday td {{ color:var(--muted); font-style:italic; background:var(--card); }}
   .empty {{ color:var(--muted); padding:40px; text-align:center; }}
@@ -408,7 +358,7 @@ def build(log: list) -> None:
       <a href="{html.escape(CAMP['url'])}" target="_blank" rel="noopener">View on Kickstarter</a></p>
     {stat_cards}
     {chart_svg}
-    {hourly_html}
+    {pull_log_html}
     {calendar_html}
     <p class="foot"><span class="live"></span>Auto-refreshes every {REFRESH_SECONDS}s ·
       {len(log)} snapshot(s) logged · last built {now.strftime('%Y-%m-%d %H:%M %Z')} ·
