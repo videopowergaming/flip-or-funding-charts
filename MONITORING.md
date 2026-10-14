@@ -30,6 +30,24 @@ Chrome running + Claude extension connected (🧩) + Mac awake + the Claude sess
 Minimizing the tab, switching windows, or opening new tabs/windows is **fine** — the monitor
 uses its own background tab and doesn't touch your other tabs.
 
+## Connection alerts (Patrick's standing request)
+
+Patrick wants to be **alerted whenever Claude is NOT connected to his Chrome and Kickstarter.**
+Claude checks the connection and alerts him if it's down at these moments:
+- At the **start of a session** that touches this project.
+- On the **trigger phrase** ("pull up the flip-or funding charts") / any resume.
+- On **every hourly loop iteration** (the cron already does this).
+
+Check = `list_connected_browsers` returns a browser AND the Kickstarter page loads logged-in
+(profile/dashboard shows the account, not a login wall). If either fails, alert clearly, e.g.:
+> ⚠️ Not connected — [Chrome extension not reachable / Kickstarter not logged in]. The Flip-Or
+> monitor is PAUSED. Open Chrome, connect the Claude extension (🧩 → Claude), make sure you're
+> logged into Kickstarter, then say "resume Flip-Or monitoring." No data is lost; the chart just
+> shows a gap until it's back.
+
+When connected, a brief confirmation is fine. (Honest limit: these alerts only fire while a
+Claude session is alive — a fully closed session/Mac can't alert; the chart gap is then the signal.)
+
 ## Trigger phrase: "pull up the flip-or funding charts"
 
 When Patrick says **"pull up the flip-or funding charts"** (or a close variant — "show me the
