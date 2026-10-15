@@ -1,7 +1,7 @@
 {
   "monitoring": {
-    "cadence": "every 5 hours at :07",
-    "cron_hourly": "7 */5 * * *",
+    "cadence": "every 4 hours at :07 (6x/day)",
+    "cron_hourly": "7 */4 * * *",
     "started": "2026-10-14",
     "restart_reminder_date": "2026-10-20",
     "expires_7day": "2026-10-21",

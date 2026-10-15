@@ -6,7 +6,7 @@ is session-bound (see the honest limits below) and is re-armed in one step each 
 
 ## Current setup
 
-- **Cadence:** every **5 hours**, at **:07** (cron `7 */5 * * *`) — changed from hourly on 2026-10-15 at Patrick's request. Patrick also asks for updates on demand ("pull up the flip-or funding charts").
+- **Cadence:** every **4 hours**, at **:07** (cron `7 */4 * * *`) = 6x/day, even spacing — changed from hourly on 2026-10-15 at Patrick's request. Patrick also asks for updates on demand ("pull up the flip-or funding charts").
 - **Started:** 2026-10-14 · **7-day cron expiry:** ~2026-10-21 · **Restart reminder:** 2026-10-20
 - **Campaign deadline:** Nov 17 2026, 8:00 PM EST
 - Each hour: read pledged $ + backers from the campaign via the logged-in Chrome →
