@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="60">
+<meta http-equiv="refresh" content="300">
 <title>Flip-Or Wave 2 — Funding Over Time</title>
 <style>
   :root {
@@ -48,6 +48,12 @@
   text.ytitle { fill:var(--yaxis); font-size:13px; font-weight:700; }
   text.goal-label { fill:var(--goal); font-size:12px; font-weight:600; }
   text.callout { fill:var(--line); font-size:13px; font-weight:700; }
+  .hover-capture { fill:transparent; }
+  .xhair { stroke:var(--muted); stroke-width:1; stroke-dasharray:4 3; }
+  .hdot { fill:var(--goal); stroke:var(--bg); stroke-width:2; }
+  .htip-bg { fill:var(--fg); opacity:0.94; }
+  .htip-t1 { fill:var(--bg); font-size:15px; font-weight:700; }
+  .htip-t2 { fill:var(--bg); font-size:12px; opacity:0.9; }
   .caltitle { font-size:1.05rem; margin:28px 0 10px; }
   .hourcap { font-size:.9rem; margin:6px 0 0; color:var(--fg); }
   .hourcap strong { color:var(--line); }
@@ -82,7 +88,7 @@
           <div class="stat s-days"><div class="num">31</div><div class="lbl">days to go</div></div>
         </div>
     <h2 class="caltitle">Full campaign — launch → deadline</h2>
-    <svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" class="chart">
+    <svg id="chart-full" viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" class="chart" data-cfg='{"ML": 90, "MR": 40, "MT": 70, "plot_w": 830, "plot_h": 400, "W": 960, "H": 540, "y_max": 220000.00000000003, "x0": 1791864000000, "x1": 1794963600000, "pts": [[1791936000000, 0.0], [1791982830000, 125716.0], [1791987583000, 126960.0], [1791991182000, 127815.0], [1791994781000, 128190.0], [1791998459000, 130433.0], [1792001995000, 130698.0], [1792005582000, 132445.0], [1792009209000, 133252.0], [1792012692000, 133997.0], [1792016291000, 134292.0], [1792019891000, 134442.0], [1792023491000, 135478.0], [1792027093000, 136178.0], [1792030692000, 136759.0], [1792034292000, 137319.0], [1792037892000, 137431.0], [1792041492000, 137562.0], [1792045092000, 138272.0], [1792059493000, 138597.0], [1792067797000, 138591.0], [1792082190000, 140139.0], [1792085570000, 140289.0], [1792110997000, 141814.0], [1792113548000, 142089.0], [1792125395000, 142239.0], [1792139796000, 142054.0], [1792154788000, 143024.0], [1792164353000, 143226.0], [1792168592000, 143376.0], [1792182995000, 144551.0], [1792197390000, 145706.0], [1792211794000, 145741.0], [1792226190000, 146625.0], [1792234609000, 146900.0]]}'>
 <rect x="0" y="0" width="960" height="540" fill="var(--bg)"/>
 <line x1="90" y1="470.0" x2="920" y2="470.0" stroke="var(--grid)" stroke-width="1"/>
 <text x="80" y="474.0" text-anchor="end" class="ylab">$0</text>
@@ -215,9 +221,10 @@
 <text x="179.2" y="190.9" text-anchor="end" class="callout">$146,900</text>
 <text x="505.0" y="522" text-anchor="middle" class="xtitle">Date</text>
 <text x="22" y="270.0" text-anchor="middle" class="ytitle" transform="rotate(-90 22 270.0)">Dollars pledged (USD)</text>
+<rect class="hover-capture" x="90" y="70" width="830" height="400" fill="transparent" style="cursor:crosshair;pointer-events:all"/>
 </svg>
     <h2 class="caltitle">7-day window (zoomed)</h2>
-    <svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" class="chart">
+    <svg id="chart-7day" viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" class="chart" data-cfg='{"ML": 90, "MR": 40, "MT": 70, "plot_w": 830, "plot_h": 400, "W": 960, "H": 540, "y_max": 220000.00000000003, "x0": 1791864000000, "x1": 1792468800000, "pts": [[1791936000000, 0.0], [1791982830000, 125716.0], [1791987583000, 126960.0], [1791991182000, 127815.0], [1791994781000, 128190.0], [1791998459000, 130433.0], [1792001995000, 130698.0], [1792005582000, 132445.0], [1792009209000, 133252.0], [1792012692000, 133997.0], [1792016291000, 134292.0], [1792019891000, 134442.0], [1792023491000, 135478.0], [1792027093000, 136178.0], [1792030692000, 136759.0], [1792034292000, 137319.0], [1792037892000, 137431.0], [1792041492000, 137562.0], [1792045092000, 138272.0], [1792059493000, 138597.0], [1792067797000, 138591.0], [1792082190000, 140139.0], [1792085570000, 140289.0], [1792110997000, 141814.0], [1792113548000, 142089.0], [1792125395000, 142239.0], [1792139796000, 142054.0], [1792154788000, 143024.0], [1792164353000, 143226.0], [1792168592000, 143376.0], [1792182995000, 144551.0], [1792197390000, 145706.0], [1792211794000, 145741.0], [1792226190000, 146625.0], [1792234609000, 146900.0]]}'>
 <rect x="0" y="0" width="960" height="540" fill="var(--bg)"/>
 <line x1="90" y1="470.0" x2="920" y2="470.0" stroke="var(--grid)" stroke-width="1"/>
 <text x="80" y="474.0" text-anchor="end" class="ylab">$0</text>
@@ -293,6 +300,7 @@
 <text x="588.6" y="190.9" text-anchor="end" class="callout">$146,900</text>
 <text x="505.0" y="522" text-anchor="middle" class="xtitle">Date</text>
 <text x="22" y="270.0" text-anchor="middle" class="ytitle" transform="rotate(-90 22 270.0)">Dollars pledged (USD)</text>
+<rect class="hover-capture" x="90" y="70" width="830" height="400" fill="transparent" style="cursor:crosshair;pointer-events:all"/>
 </svg>
     
     <h2 class="caltitle">Data pull log (35 pulls)</h2>
@@ -308,9 +316,73 @@
         <th class="r">Backers</th><th class="r">Snaps</th><th>Last pull</th></tr></thead>
       <tbody><tr><td>Tue Oct 13</td><td class="r">$0</td><td class="r gain"></td><td class="r">0</td><td class="r">1</td><td class="t">last 08:00 PM</td></tr><tr><td>Wed Oct 14</td><td class="r">$137,319</td><td class="r gain">+$137,319</td><td class="r">425</td><td class="r">15</td><td class="t">last 11:18 PM</td></tr><tr><td>Thu Oct 15</td><td class="r">$142,089</td><td class="r gain">+$4,770</td><td class="r">439</td><td class="r">9</td><td class="t">last 09:19 PM</td></tr><tr><td>Fri Oct 16</td><td class="r">$145,706</td><td class="r gain">+$3,617</td><td class="r">456</td><td class="r">7</td><td class="t">last 08:36 PM</td></tr><tr><td>Sat Oct 17</td><td class="r">$146,900</td><td class="r gain">+$1,194</td><td class="r">463</td><td class="r">3</td><td class="t">last 06:56 AM</td></tr></tbody>
     </table>
-    <p class="foot"><span class="live"></span>Auto-refreshes every 60s ·
-      35 snapshot(s) logged · last built 2026-10-17 06:56 EDT ·
+    <p class="foot"><span class="live"></span>Auto-refreshes every 300s ·
+      35 snapshot(s) logged · last built 2026-10-17 07:04 EDT ·
       deadline Nov 17 2026 08:00 PM UTC-05:00</p>
   </div>
+
+<script>
+(function () {
+  function fmtUSD(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
+  function fmtDT(ms) {
+    return new Date(ms).toLocaleString('en-US',
+      { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+  var NS = 'http://www.w3.org/2000/svg';
+  function mk(tag, cls) { var e = document.createElementNS(NS, tag); if (cls) e.setAttribute('class', cls); e.style.pointerEvents = 'none'; e.style.opacity = '0'; return e; }
+
+  document.querySelectorAll('svg.chart[data-cfg]').forEach(function (svg) {
+    var cfg; try { cfg = JSON.parse(svg.getAttribute('data-cfg')); } catch (e) { return; }
+    if (!cfg.pts || !cfg.pts.length) return;
+    var ML = cfg.ML, MT = cfg.MT, pw = cfg.plot_w, ph = cfg.plot_h, ymax = cfg.y_max, x0 = cfg.x0, x1 = cfg.x1;
+    function xpx(t) { return ML + pw * ((t - x0) / (x1 - x0)); }
+    function ypx(v) { return MT + ph * (1 - v / ymax); }
+
+    var xhair = mk('line', 'xhair'); xhair.setAttribute('y1', MT); xhair.setAttribute('y2', MT + ph); svg.appendChild(xhair);
+    var dot = mk('circle', 'hdot'); dot.setAttribute('r', '5'); svg.appendChild(dot);
+    var tip = mk('g');
+    var bg = document.createElementNS(NS, 'rect'); bg.setAttribute('class', 'htip-bg'); bg.setAttribute('rx', '6');
+    var t1 = document.createElementNS(NS, 'text'); t1.setAttribute('class', 'htip-t1');
+    var t2 = document.createElementNS(NS, 'text'); t2.setAttribute('class', 'htip-t2');
+    tip.appendChild(bg); tip.appendChild(t1); tip.appendChild(t2); svg.appendChild(tip);
+
+    var cap = svg.querySelector('.hover-capture');
+    function toUser(evt) {
+      var p = svg.createSVGPoint(); p.x = evt.clientX; p.y = evt.clientY;
+      var m = svg.getScreenCTM(); if (!m) return null;
+      return p.matrixTransform(m.inverse());
+    }
+    function move(evt) {
+      var u = toUser(evt); if (!u) return;
+      var ux = Math.max(ML, Math.min(ML + pw, u.x));
+      var t = x0 + (ux - ML) / pw * (x1 - x0);
+      var best = cfg.pts[0], bd = Math.abs(cfg.pts[0][0] - t);
+      for (var i = 1; i < cfg.pts.length; i++) { var d = Math.abs(cfg.pts[i][0] - t); if (d < bd) { bd = d; best = cfg.pts[i]; } }
+      var bx = xpx(best[0]), by = ypx(best[1]);
+      xhair.setAttribute('x1', bx); xhair.setAttribute('x2', bx); xhair.style.opacity = '1';
+      dot.setAttribute('cx', bx); dot.setAttribute('cy', by); dot.style.opacity = '1';
+      t1.textContent = fmtUSD(best[1]); t2.textContent = fmtDT(best[0]);
+      t1.setAttribute('x', 0); t1.setAttribute('y', 0); t2.setAttribute('x', 0); t2.setAttribute('y', 0);
+      var b1 = t1.getBBox(), b2 = t2.getBBox(), pad = 9;
+      var w = Math.max(b1.width, b2.width) + pad * 2, h = b1.height + b2.height + pad * 2 + 2;
+      var tx = bx + 14, ty = by - h - 10;
+      if (tx + w > ML + pw) tx = bx - w - 14;
+      if (tx < ML) tx = ML + 2;
+      if (ty < MT) ty = by + 14;
+      tip.setAttribute('transform', 'translate(' + tx + ',' + ty + ')');
+      bg.setAttribute('x', 0); bg.setAttribute('y', 0); bg.setAttribute('width', w); bg.setAttribute('height', h);
+      t1.setAttribute('x', pad); t1.setAttribute('y', pad + b1.height - 2);
+      t2.setAttribute('x', pad); t2.setAttribute('y', pad + b1.height + b2.height);
+      tip.style.opacity = '1';
+    }
+    function leave() { xhair.style.opacity = '0'; dot.style.opacity = '0'; tip.style.opacity = '0'; }
+    cap.addEventListener('mousemove', move);
+    cap.addEventListener('mouseleave', leave);
+    cap.addEventListener('touchstart', function (e) { if (e.touches[0]) move(e.touches[0]); }, { passive: true });
+    cap.addEventListener('touchmove', function (e) { if (e.touches[0]) move(e.touches[0]); }, { passive: true });
+  });
+})();
+</script>
+
 </body>
 </html>

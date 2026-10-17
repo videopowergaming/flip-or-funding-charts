@@ -28,7 +28,7 @@ CONFIG = json.loads((ROOT / "config.json").read_text())
 CAMP = CONFIG["campaign"]
 LOG_PATH = ROOT / CAMP["funding_log"]
 CHART_PATH = ROOT / CONFIG["charts_dir"] / "flipor_wave2_funding.html"
-REFRESH_SECONDS = 60
+REFRESH_SECONDS = 300
 
 
 def load_log() -> list:
@@ -92,7 +92,7 @@ def _all_points(log: list) -> list:
     return pts
 
 
-def _line_chart(points_all: list, goal: float, x0: dt.datetime, x1: dt.datetime) -> str:
+def _line_chart(points_all: list, goal: float, x0: dt.datetime, x1: dt.datetime, chart_id: str = "chart") -> str:
     """Render one funding line chart over the x-domain [x0, x1] with daily ticks."""
     W, H = 960, 540
     ML, MR, MT, MB = 90, 40, 70, 70
@@ -108,7 +108,14 @@ def _line_chart(points_all: list, goal: float, x0: dt.datetime, x1: dt.datetime)
     def y_px(v):
         return MT + plot_h * (1 - v / y_max)
 
-    svg = [f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" class="chart">']
+    # config embedded for the hover/tooltip script (snaps to nearest real data point)
+    cfg = {
+        "ML": ML, "MR": MR, "MT": MT, "plot_w": plot_w, "plot_h": plot_h, "W": W, "H": H,
+        "y_max": y_max,
+        "x0": int(x0.timestamp() * 1000), "x1": int(x1.timestamp() * 1000),
+        "pts": [[int(t.timestamp() * 1000), v] for (t, v, _) in win],
+    }
+    svg = [f"<svg id=\"{chart_id}\" viewBox=\"0 0 {W} {H}\" xmlns=\"http://www.w3.org/2000/svg\" class=\"chart\" data-cfg='{json.dumps(cfg)}'>"]
     svg.append(f'<rect x="0" y="0" width="{W}" height="{H}" fill="var(--bg)"/>')
 
     # y gridlines + labels ($)
@@ -164,6 +171,8 @@ def _line_chart(points_all: list, goal: float, x0: dt.datetime, x1: dt.datetime)
     # axis titles
     svg.append(f'<text x="{ML+plot_w/2:.1f}" y="{H-18}" text-anchor="middle" class="xtitle">Date</text>')
     svg.append(f'<text x="22" y="{MT+plot_h/2:.1f}" text-anchor="middle" class="ytitle" transform="rotate(-90 22 {MT+plot_h/2:.1f})">Dollars pledged (USD)</text>')
+    # transparent overlay that captures hover/touch across the whole plot area
+    svg.append(f'<rect class="hover-capture" x="{ML}" y="{MT}" width="{plot_w}" height="{plot_h}" fill="transparent" style="cursor:crosshair;pointer-events:all"/>')
     svg.append("</svg>")
     return "\n".join(svg)
 
@@ -177,7 +186,7 @@ def render_chart(log: list):
     x0 = dt.datetime.combine(first_t.date(), dt.time(0, 0), tzinfo=first_t.tzinfo)
     x1 = deadline if deadline > x0 else x0 + dt.timedelta(days=1)
     latest = points[-1] if points else None
-    return _line_chart(points, goal, x0, x1), latest, goal, deadline
+    return _line_chart(points, goal, x0, x1, chart_id="chart-full"), latest, goal, deadline
 
 
 def render_window_chart(log: list, days: int = 7) -> str:
@@ -194,7 +203,7 @@ def render_window_chart(log: list, days: int = 7) -> str:
     window_end = start_date + dt.timedelta(days=days - 1)  # inclusive -> `days` day span
     x0 = dt.datetime.combine(start_date, dt.time(0, 0), tzinfo=tz)
     x1 = dt.datetime.combine(window_end + dt.timedelta(days=1), dt.time(0, 0), tzinfo=tz)
-    return _line_chart(points, goal, x0, x1)
+    return _line_chart(points, goal, x0, x1, chart_id="chart-7day")
 
 
 def _hour_label(t: dt.datetime) -> str:
@@ -281,6 +290,72 @@ def render_calendar(log: list) -> str:
     </table>"""
 
 
+HOVER_SCRIPT = r"""
+<script>
+(function () {
+  function fmtUSD(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
+  function fmtDT(ms) {
+    return new Date(ms).toLocaleString('en-US',
+      { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+  var NS = 'http://www.w3.org/2000/svg';
+  function mk(tag, cls) { var e = document.createElementNS(NS, tag); if (cls) e.setAttribute('class', cls); e.style.pointerEvents = 'none'; e.style.opacity = '0'; return e; }
+
+  document.querySelectorAll('svg.chart[data-cfg]').forEach(function (svg) {
+    var cfg; try { cfg = JSON.parse(svg.getAttribute('data-cfg')); } catch (e) { return; }
+    if (!cfg.pts || !cfg.pts.length) return;
+    var ML = cfg.ML, MT = cfg.MT, pw = cfg.plot_w, ph = cfg.plot_h, ymax = cfg.y_max, x0 = cfg.x0, x1 = cfg.x1;
+    function xpx(t) { return ML + pw * ((t - x0) / (x1 - x0)); }
+    function ypx(v) { return MT + ph * (1 - v / ymax); }
+
+    var xhair = mk('line', 'xhair'); xhair.setAttribute('y1', MT); xhair.setAttribute('y2', MT + ph); svg.appendChild(xhair);
+    var dot = mk('circle', 'hdot'); dot.setAttribute('r', '5'); svg.appendChild(dot);
+    var tip = mk('g');
+    var bg = document.createElementNS(NS, 'rect'); bg.setAttribute('class', 'htip-bg'); bg.setAttribute('rx', '6');
+    var t1 = document.createElementNS(NS, 'text'); t1.setAttribute('class', 'htip-t1');
+    var t2 = document.createElementNS(NS, 'text'); t2.setAttribute('class', 'htip-t2');
+    tip.appendChild(bg); tip.appendChild(t1); tip.appendChild(t2); svg.appendChild(tip);
+
+    var cap = svg.querySelector('.hover-capture');
+    function toUser(evt) {
+      var p = svg.createSVGPoint(); p.x = evt.clientX; p.y = evt.clientY;
+      var m = svg.getScreenCTM(); if (!m) return null;
+      return p.matrixTransform(m.inverse());
+    }
+    function move(evt) {
+      var u = toUser(evt); if (!u) return;
+      var ux = Math.max(ML, Math.min(ML + pw, u.x));
+      var t = x0 + (ux - ML) / pw * (x1 - x0);
+      var best = cfg.pts[0], bd = Math.abs(cfg.pts[0][0] - t);
+      for (var i = 1; i < cfg.pts.length; i++) { var d = Math.abs(cfg.pts[i][0] - t); if (d < bd) { bd = d; best = cfg.pts[i]; } }
+      var bx = xpx(best[0]), by = ypx(best[1]);
+      xhair.setAttribute('x1', bx); xhair.setAttribute('x2', bx); xhair.style.opacity = '1';
+      dot.setAttribute('cx', bx); dot.setAttribute('cy', by); dot.style.opacity = '1';
+      t1.textContent = fmtUSD(best[1]); t2.textContent = fmtDT(best[0]);
+      t1.setAttribute('x', 0); t1.setAttribute('y', 0); t2.setAttribute('x', 0); t2.setAttribute('y', 0);
+      var b1 = t1.getBBox(), b2 = t2.getBBox(), pad = 9;
+      var w = Math.max(b1.width, b2.width) + pad * 2, h = b1.height + b2.height + pad * 2 + 2;
+      var tx = bx + 14, ty = by - h - 10;
+      if (tx + w > ML + pw) tx = bx - w - 14;
+      if (tx < ML) tx = ML + 2;
+      if (ty < MT) ty = by + 14;
+      tip.setAttribute('transform', 'translate(' + tx + ',' + ty + ')');
+      bg.setAttribute('x', 0); bg.setAttribute('y', 0); bg.setAttribute('width', w); bg.setAttribute('height', h);
+      t1.setAttribute('x', pad); t1.setAttribute('y', pad + b1.height - 2);
+      t2.setAttribute('x', pad); t2.setAttribute('y', pad + b1.height + b2.height);
+      tip.style.opacity = '1';
+    }
+    function leave() { xhair.style.opacity = '0'; dot.style.opacity = '0'; tip.style.opacity = '0'; }
+    cap.addEventListener('mousemove', move);
+    cap.addEventListener('mouseleave', leave);
+    cap.addEventListener('touchstart', function (e) { if (e.touches[0]) move(e.touches[0]); }, { passive: true });
+    cap.addEventListener('touchmove', function (e) { if (e.touches[0]) move(e.touches[0]); }, { passive: true });
+  });
+})();
+</script>
+"""
+
+
 def build(log: list) -> None:
     CHART_PATH.parent.mkdir(parents=True, exist_ok=True)
     now = dt.datetime.now().astimezone()
@@ -311,6 +386,7 @@ def build(log: list) -> None:
     pull_log_html = render_pull_log(log) if log else ""
     calendar_html = render_calendar(log)
     title = html.escape(CAMP["name"])
+    hover_script = HOVER_SCRIPT
     page = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -361,6 +437,12 @@ def build(log: list) -> None:
   text.ytitle {{ fill:var(--yaxis); font-size:13px; font-weight:700; }}
   text.goal-label {{ fill:var(--goal); font-size:12px; font-weight:600; }}
   text.callout {{ fill:var(--line); font-size:13px; font-weight:700; }}
+  .hover-capture {{ fill:transparent; }}
+  .xhair {{ stroke:var(--muted); stroke-width:1; stroke-dasharray:4 3; }}
+  .hdot {{ fill:var(--goal); stroke:var(--bg); stroke-width:2; }}
+  .htip-bg {{ fill:var(--fg); opacity:0.94; }}
+  .htip-t1 {{ fill:var(--bg); font-size:15px; font-weight:700; }}
+  .htip-t2 {{ fill:var(--bg); font-size:12px; opacity:0.9; }}
   .caltitle {{ font-size:1.05rem; margin:28px 0 10px; }}
   .hourcap {{ font-size:.9rem; margin:6px 0 0; color:var(--fg); }}
   .hourcap strong {{ color:var(--line); }}
@@ -397,6 +479,7 @@ def build(log: list) -> None:
       {len(log)} snapshot(s) logged · last built {now.strftime('%Y-%m-%d %H:%M %Z')} ·
       deadline {deadline.strftime('%b %d %Y %I:%M %p %Z')}</p>
   </div>
+{hover_script}
 </body>
 </html>"""
     CHART_PATH.write_text(page)
