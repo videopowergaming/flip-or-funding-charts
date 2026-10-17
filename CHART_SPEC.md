@@ -24,6 +24,16 @@ refresh and must always contain, in this order:
 5. **Update calendar** — per-day summary: end-of-day pledged, daily gain, backers, snapshots,
    and "no data (away)" rows for days the monitor wasn't running.
 
+## Interactive hover (added 2026-10-17, Patrick signed off — keep permanently)
+Both the full-campaign and 7-day charts have a cursor hover tooltip:
+- Moving the cursor anywhere over the plot area (including the blue fill under the line) shows a
+  tooltip next to the cursor with the **pledged $ value** and the **date/time** of that point.
+- It **snaps to the nearest actual recorded snapshot** — never interpolates or guesses; every
+  value shown is a real measurement.
+- A vertical crosshair + marker dot pin the point on the line. Updates live as the cursor moves.
+- Implemented via per-chart `data-cfg` JSON on each `<svg>` + a `.hover-capture` overlay rect +
+  the `HOVER_SCRIPT` in `build.py`. Works with mouse and touch.
+
 ## Y-axis
 Auto-scales to ~110% of max(goal, pledged). Fine at current levels; revisit denominations only if
 funding rises substantially (Patrick's note, 2026-10-14).
