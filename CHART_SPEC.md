@@ -33,6 +33,11 @@ Both the full-campaign and 7-day charts have a cursor hover tooltip:
 - A vertical crosshair + marker dot pin the point on the line. Updates live as the cursor moves.
 - Implemented via per-chart `data-cfg` JSON on each `<svg>` + a `.hover-capture` overlay rect +
   the `HOVER_SCRIPT` in `build.py`. Works with mouse and touch.
+- **Applies to EVERY Flip-Or chart, always (Patrick, 2026-10-17):** automatic 4-hour charts,
+  on-demand charts, and any new/additional chart added later must ALL have the hover tool. It is
+  built into the shared `_line_chart()` renderer, so every chart produced by `build.py` inherits
+  it automatically; any new chart type must reuse `_line_chart()` (or carry the same hover) so the
+  feature is never missing.
 
 ## Y-axis
 Auto-scales to ~110% of max(goal, pledged). Fine at current levels; revisit denominations only if
