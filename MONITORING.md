@@ -6,8 +6,8 @@ is session-bound (see the honest limits below) and is re-armed in one step each 
 
 ## Current setup
 
-- **Cadence:** every **4 hours**, at **:07** (cron `7 */4 * * *`) = 6x/day, even spacing — changed from hourly on 2026-10-15 at Patrick's request. Patrick also asks for updates on demand ("pull up the flip-or funding charts").
-- **Started:** 2026-10-14 · **7-day cron expiry:** ~2026-10-21 · **Restart reminder:** 2026-10-20
+- **Cadence:** every **12 hours**, at **:07** (cron `7 */12 * * *`) = 2x/day — reduced from 4h on 2026-10-20 to cut usage (history: hourly → 4h on 10-15 → 12h on 10-20). Patrick also asks for updates on demand ("pull up the flip-or funding charts").
+- **Started:** 2026-10-14 · **Re-armed:** 2026-10-20 · **7-day cron expiry:** ~2026-10-27 · **Restart reminder:** 2026-10-27
 - **Campaign deadline:** Nov 17 2026, 8:00 PM EST
 - Each hour: read pledged $ + backers from the campaign via the logged-in Chrome →
   `python3 build.py --record --pledged N --backers N` → commit + push.
