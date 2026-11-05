@@ -8,9 +8,9 @@
     "campaign_deadline": "2026-11-17T20:00:00-05:00",
     "status": "active",
     "note": "Session cron jobs live only in an active Claude session; they cannot run from GitHub. This file persists the SETUP + STATE so monitoring resumes in one step each session. See MONITORING.md.",
-    "last_pulled": "2026-11-05T00:37:25-05:00",
-    "last_pledged_usd": 215318.0,
-    "last_backers": 689,
+    "last_pulled": "2026-11-05T12:37:26-05:00",
+    "last_pledged_usd": 216091.0,
+    "last_backers": 690,
     "rearmed": "2026-11-03"
   }
 }
