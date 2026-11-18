@@ -184,7 +184,12 @@ def render_chart(log: list):
     points = _all_points(log)
     first_t = points[0][0] if points else deadline - dt.timedelta(days=34)
     x0 = dt.datetime.combine(first_t.date(), dt.time(0, 0), tzinfo=first_t.tzinfo)
-    x1 = deadline if deadline > x0 else x0 + dt.timedelta(days=1)
+    # Extend the domain past the deadline if later snapshots exist (e.g. the final
+    # funded total / post-close late pledges), so the last real point — and its
+    # labeled bullet callout — is always shown rather than cut off at the deadline.
+    last_t = points[-1][0] if points else x0
+    x_end = max(deadline, last_t)
+    x1 = x_end if x_end > x0 else x0 + dt.timedelta(days=1)
     latest = points[-1] if points else None
     return _line_chart(points, goal, x0, x1, chart_id="chart-full"), latest, goal, deadline
 
